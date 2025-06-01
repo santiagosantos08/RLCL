@@ -7,13 +7,12 @@
 
 - **Set charge limits**: Easily toggle charge limits on or off.
 - **Custom charge limit**: Set a custom charge percentage for your battery.
-
 ---
 
 ## 📦 Installation
 
 ### 🛠️ Prerequisites
-
+- **SINGLE BATTERY THINKPAD**: The Lenovo CLI only works for single battery models, this being a GUI wrapper, has the same shortcomings.
 - **Lenovo Power Manager driver**: Make sure you have the official Lenovo Power Manager driver installed.
 - **PowerShell**: Ensure PowerShell is working on your system.
 
