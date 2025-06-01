@@ -5,7 +5,7 @@
 - **Set charge limits**: Easily toggle charge limits on or off.
 - **Custom charge limits**: Set custom charge percentages for your battery.
 
-![alt text]( "screenshot of RLCL")
+![alt text](https://raw.githubusercontent.com/santiagosantos08/RLCL/refs/heads/main/readme_screenshot.png "screenshot of RLCL")
 
 ## 📦 Installation
 
