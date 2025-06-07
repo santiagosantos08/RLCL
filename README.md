@@ -10,7 +10,7 @@
 ## 📦 Installation
 
 ### 🛠️ Prerequisites / Considerations
-- **SINGLE BATTERY THINKPAD**: The Lenovo CLI only works for single battery models, this being a GUI wrapper, has the same shortcomings.
+- **For multi-battery devices (ex t480, etc)**: It can only set all batteries to the same threshold-s-, using a different one for each battery is not supported.
 - **Lenovo Power Manager driver**: Make sure you have the official Lenovo Power Manager driver installed.
 - **PowerShell**: Ensure PowerShell is working on your system.
 - **64bit Windows**: Current release is x64 only, for 32bit you can build it manually or just run as a python script.
