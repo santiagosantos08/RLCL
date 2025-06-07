@@ -10,7 +10,7 @@
 ## 📦 Installation
 
 ### 🛠️ Prerequisites / Considerations
-- **For multi-battery devices (ex t480, etc)**: It can only set all batteries to the same threshold-s-, using a different one for each battery is not supported.
+- **For multi-battery devices (ex t480, etc)**: It can only set all batteries to the same threshold-s-, using a different one for each battery is not supported, since this is the case i've decided to promote it as "for single battery devices only" as i don't consider it feature-complete, but it technically works, it's just that the same threshold gets applied to all batteries (i think this is also a limitation in Vantage itself so whatever).
 - **Lenovo Power Manager driver**: Make sure you have the official Lenovo Power Manager driver installed (check if PowerMgr.exe is running).
 - **PowerShell**: Ensure PowerShell is working on your system.
 - **64bit Windows**: Current release is x64 only, for 32bit you can build it manually or just run as a python script.
