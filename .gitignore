@@ -1,3 +1,4 @@
 *.exe
+presets.json
 build/*
 dist/*

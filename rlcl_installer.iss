@@ -1,7 +1,9 @@
 ; rlcl_installer.iss
 [Setup]
 AppName=RedLineChargeLimits
-AppVersion=1.0
+AppVersion=1.2
+AppPublisher=Santos Santiago
+AppUpdatesURL=https://github.com/santiagosantos08/RLCL/releases/
 DefaultDirName={pf}\Redline\ChargeLimits
 DefaultGroupName=RedLine
 UninstallDisplayIcon={app}\rlcl.exe
