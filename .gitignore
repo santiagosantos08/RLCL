@@ -3,3 +3,4 @@ presets.json
 build/*
 dist/*
 /.vs
+build_*
