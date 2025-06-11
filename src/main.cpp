@@ -7,11 +7,11 @@
 //container alignmed modes
 #define ROW 0
 #define COLUMN 1
-//alignment across the main and cross axis, similar to flexbox
+//alignment across the main and cross axis, similar to flexbox | CURRENTLY UNUSED
 #define START 0
 #define CENTER 1
 #define END 2
-//spacing across main axis
+//spacing across main axis | CURRENTLY UNUSED
 #define FILL 0
 #define CONCENTRATE 1
 
@@ -78,9 +78,16 @@ class Container: public UINode{
                 child->setX(this->w - child->getWidth() - this->padding);
                 child->setY(this->y + padding); //change for alignment etc
             }else{
-                this->h += child->getHeight() + (gap * (this->children.size() > 0));
-                child->setY(this->h - child->getHeight() - this->padding);
-                child->setX(this->x + padding);
+                if(this->alignCross == START){
+                    this->h += child->getHeight() + (gap * (this->children.size() > 0));
+                    child->setY(this->h - child->getHeight() - this->padding);
+                    child->setX(this->x + padding);
+                }else if(this->alignCross == CENTER){
+                    this->h += child->getHeight() + (gap * (this->children.size() > 0));
+                    child->setY(this->h - child->getHeight() - this->padding);
+                    child->setX(this->x + padding + (child->getWidth() - this->w - this->padding) / 2);
+                }
+                
             }
             if(child->getWidth() > this->w){this->w = child->getWidth() + 2 * padding;}
             if(child->getHeight() > this->h){this->h = child->getHeight() + 2 * padding;}
@@ -150,38 +157,54 @@ Container& Container::operator=(Container&& other) noexcept {
     return *this;
 }
 
-
-class PresetBox: public UINode {
+class TextLabel: public UINode {
     public:
-        PresetBox(int start, int stop, int x, int y, int w, int h, int fontSize, Color color, int padding){
+        std::function<void(std::string)> onClick;
+        TextLabel(std::string label, int x, int y, int fontSize, Color color, Color textColor, int padding){
+            this->label = label;
             this->x = x;
             this->y = y;
-            this->label = std::to_string(start) + "-" + std::to_string(stop);
-            Vector2 dimensions = MeasureTextEx(GetFontDefault(),this->label.c_str(),fontSize,3);
-            this->h = dimensions.y + 2 * padding;
-            this->w = dimensions.x + 2 * padding;
+            this->baseColor = color;
+            Vector2 dimensions = MeasureTextEx(GetFontDefault(),label.c_str(),fontSize,3);
+            this->h = dimensions.y;
+            this->w = dimensions.x;
             this->fontSize = fontSize;
-            this->color = color;
+            this-> textColor = textColor;
             this->padding = padding;
+            Rectangle rec = {(int) x,(int) y,(float) dimensions.x + 2 * padding, (float) dimensions.y + 2 * padding};
+            this->backdrop = rec;
         }
+        bool checkClick(Vector2 mousePos){
+            return false;
+        }
+        void setX(int x) override {
+            this->x = x; 
+            Rectangle newBack = Rectangle{this->x,this->y,this->w + 2 * this->padding,this->h + 2 * this->padding};
+            this->backdrop = newBack;
+        }
+        void setY(int y) override {
+            this->y = y; 
+            Rectangle newBack = Rectangle{this->x,this->y,this->w + 2 * this->padding,this->h + 2 * this->padding};
+            this->backdrop = newBack;
+        }
+        int getWidth(){return this->backdrop.width;}
+        int getHeight(){return this->backdrop.height;}
     protected:
-        void drawSelf(int offsetX, int offsetY) override {
-            DrawRectangle(this->x,this->y,this->w,this->h,this->color);
-            DrawText(this->label.c_str(),this->x + this->padding, this->y + this->padding, this->fontSize,BLACK);
-        }
-        void tickSelf(Vector2 v) override {
+        void tickSelf(Vector2 mousePos) override{
             return;
         }
+        void drawSelf(int offsetX, int offsetY) override {
+            DrawRectangleRec(this->backdrop,this->baseColor);
+            DrawText(this->label.c_str(), this->x + this->padding, this->y + this->padding, this->fontSize, this->textColor);
+        }
+
     private:
         int padding;
         int fontSize;
+        Rectangle backdrop;
         std::string label;
-        Color color;
-
-};
-
-class TextLabel: public UINode{
-
+        Color baseColor;
+        Color textColor;
 };
 
 class Button: public UINode {
@@ -268,6 +291,10 @@ class Button: public UINode {
         int currAnimFrame;
 };
 
+class Slider: public UINode{
+
+};
+
 int limitSliderXmovement(int pos, bool upper, int cmp){
     int res = pos;
     if(upper && res <= cmp){
@@ -288,42 +315,44 @@ int getSliderPercent(int pos){
 }
 
 int main(void){
-    InitWindow(400, 500, "RLCL");
+    InitWindow(1, 1, "RLCL");
     SetTargetFPS(30);
-    //Button testbtn1 = Button("Prueba1CAPO",10,10,30,GRAY,BLACK,5,5);
-    /*
-    PresetBox presBox1 = PresetBox(35,40,30,30,0,0,30,RED,10);
-    presBox1.addChild(std::make_unique<Button>("Load",105,5,30,GRAY,BLACK,5,5,handleClick));
-    presBox1.addChild(std::make_unique<Button>("Delete",195,5,30,GRAY,BLACK,5,5,handleClick));
-    PresetBox presBox2 = PresetBox(35,80,30,90,0,0,30,RED,10);
-    presBox2.addChild(std::make_unique<Button>("Load",105,5,30,GRAY,BLACK,5,5,handleClick));
-    presBox2.addChild(std::make_unique<Button>("Delete",195,5,30,GRAY,BLACK,5,5,handleClick));
-    PresetBox presBox3 = PresetBox(25,70,30,150,0,0,30,RED,10);
-    presBox3.addChild(std::make_unique<Button>("Load",105,5,30,GRAY,BLACK,5,5,handleClick));
-    presBox3.addChild(std::make_unique<Button>("Delete",195,5,30,GRAY,BLACK,5,5,handleClick));
-    PresetBox presBox4 = PresetBox(30,90,30,210,0,0,30,RED,10);
-    presBox4.addChild(std::make_unique<Button>("Load",105,5,30,GRAY,BLACK,5,5,handleClick));
-    presBox4.addChild(std::make_unique<Button>("Delete",195,5,30,GRAY,BLACK,5,5,handleClick));
-    */
-    Container c0 = Container(COLUMN, START, START, CONCENTRATE, 10, 10, RED);
-    c0.addChild(std::make_unique<Button>("Load",0,0,30,GRAY,BLACK,5,5,handleClick));
-    c0.addChild(std::make_unique<Button>("Unloa pa",0,0,30,GRAY,BLACK,5,5,handleClick));
-    c0.addChild(std::make_unique<Button>("Unloa",0,0,30,GRAY,BLACK,5,5,handleClick));
-    Container c1 = Container(ROW, START, START, CONCENTRATE, 10, 10, RED);
-    c1.addChild(std::make_unique<Button>("Load",0,0,30,GRAY,BLACK,5,5,handleClick));
-    c1.addChild(std::make_unique<Button>("Unloa pa",0,0,30,GRAY,BLACK,5,5,handleClick));
-    Container c2 = Container(COLUMN, START, START, CONCENTRATE, 10, 10, RED);
-    c2.addChild(std::make_unique<Button>("Load",0,0,30,GRAY,BLACK,5,5,handleClick));
-    c2.addChild(std::make_unique<Button>("Unloa pa",0,0,30,GRAY,BLACK,5,5,handleClick));
-    Container c3 = Container(COLUMN, START, START, CONCENTRATE, 10, 10, BLUE);
-    c3.addChild(std::make_unique<Container>(std::move(c2)));
-    c3.addChild(std::make_unique<Container>(std::move(c1)));
-    c3.addChild(std::make_unique<Container>(std::move(c0)));
+    Container UI = Container(COLUMN, START, START, CONCENTRATE, 10, 10, BLACK);
+    Container topButtons = Container(ROW, START, START, CONCENTRATE, 10, 10, BLACK);
+    topButtons.addChild(std::make_unique<TextLabel>("RLCL",0,0,30,RED,BLACK,5));
+    topButtons.addChild(std::make_unique<TextLabel>("--",0,0,30,BLACK,LIGHTGRAY,5));
+    topButtons.addChild(std::make_unique<Button>("ON",0,0,30,RED,BLACK,5,5,handleClick));
+    topButtons.addChild(std::make_unique<TextLabel>(" / ",0,0,30,BLACK,LIGHTGRAY,5));
+
+    Container startRow = Container(ROW, START, START, CONCENTRATE, 10, 10, BLACK);
+    Container stopRow = Container(ROW, START, START, CONCENTRATE, 10, 10, BLACK);
+    Button addCurrent = Button("Add current to preset",0,0,30,BLACK,WHITE,5,5,handleClick);
+    startRow.addChild(std::make_unique<TextLabel>("Start.",0,0,30,BLACK,WHITE,5));
+    stopRow.addChild(std::make_unique<TextLabel>("Stop. ",0,0,30,BLACK,WHITE,5));
+    startRow.addChild(std::make_unique<TextLabel>("30%",0,0,30,BLACK,WHITE,5));
+    stopRow.addChild(std::make_unique<TextLabel>("40%",0,0,30,BLACK,WHITE,5));
+    stopRow.addChild(std::make_unique<Button>("-5%",0,0,30,RED,BLACK,5,5,handleClick));
+    stopRow.addChild(std::make_unique<Button>("+5%",0,0,30,RED,BLACK,5,5,handleClick));
+    startRow.addChild(std::make_unique<Button>("-5%",0,0,30,RED,BLACK,5,5,handleClick));
+    startRow.addChild(std::make_unique<Button>("+5%",0,0,30,RED,BLACK,5,5,handleClick));
+    topButtons.addChild(std::make_unique<Button>("OFF",0,0,30,DARKGRAY,BLACK,5,5,handleClick));
+    UI.addChild(std::make_unique<Container>(std::move(topButtons)));
+    UI.addChild(std::make_unique<Container>(std::move(startRow)));
+    UI.addChild(std::make_unique<Container>(std::move(stopRow)));
+    for(int i = 0; i < 10; i++){
+        Container c0 = Container(ROW, START, START, CONCENTRATE, 10, 10, RED);
+        c0.addChild(std::make_unique<TextLabel>(" 30 - 70 ",0,0,30,RED,BLACK,5));
+        c0.addChild(std::make_unique<Button>("load",0,0,30,LIGHTGRAY,BLACK,5,5,handleClick));
+        c0.addChild(std::make_unique<Button>("delete",0,0,30,LIGHTGRAY,BLACK,5,5,handleClick));
+        UI.addChild(std::make_unique<Container>(std::move(c0)));
+    }
+    SetWindowSize(UI.getWidth(), UI.getHeight());
+
     while (!WindowShouldClose()) {
-        c3.tick(GetMousePosition());
+        UI.tick(GetMousePosition());
         BeginDrawing();
         ClearBackground(LIGHTGRAY);
-        c3.draw(0,0);
+        UI.draw(0,0);
         //DrawText(testBanner.c_str(),0,250,40,RED);
         EndDrawing();
     }
