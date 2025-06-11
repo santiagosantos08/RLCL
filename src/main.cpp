@@ -2,6 +2,13 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
+
+std::string testBanner = "inic";
+
+void handleClick(std::string s){
+    testBanner = s;
+}
 
 class Drawable {
     public:
@@ -17,8 +24,25 @@ class Drawable {
                 child->tick(v);
             }
         }
+        virtual int getWidth() {
+            return this->w;
+        }
+        virtual int getHeight() {
+            return this->h;
+        }
+        virtual int getX(){return this->x;}
+        virtual int getY(){return this->y;}
+        virtual void setX(int x){this->x = x;}
+        virtual void setY(int y){this->y = y;}
         virtual ~Drawable() = default;
-        void addChild(std::unique_ptr<Drawable> child) {
+        void addChild(std::unique_ptr<Drawable> child, int mode) { // 0 row 1 column
+            child->setX(this->x + child->getX());
+            child->setY(this->y + child->getY());
+            if(mode == 0){
+                this->w += child->getWidth() + 20;
+            }else{
+                this->h =+ child->getHeight() + 20; //padding, need to integrate but it whatever works for now
+            }
             children.push_back(std::move(child));
         }
 
@@ -26,6 +50,7 @@ class Drawable {
         virtual void drawSelf() = 0;
         virtual void tickSelf(Vector2) = 0;
         std::vector<std::unique_ptr<Drawable>> children;
+        int x,y,w,h;
 };
 
 class PresetBox: public Drawable {
@@ -50,10 +75,6 @@ class PresetBox: public Drawable {
             return;
         }
     private:
-        int x;
-        int y;
-        int w;
-        int h;
         int padding;
         int fontSize;
         std::string label;
@@ -63,7 +84,9 @@ class PresetBox: public Drawable {
 
 class Button: public Drawable {
     public:
-        Button(std::string label, int x, int y, int fontSize, Color color, Color textColor, int padding, int animDuration){
+        std::function<void(std::string)> onClick;
+        Button(std::string label, int x, int y, int fontSize, Color color, Color textColor, int padding, int animDuration, std::function<void(std::string)> callback){
+            onClick = callback;
             this->label = label;
             this->x = x;
             this->y = y;
@@ -87,10 +110,21 @@ class Button: public Drawable {
         bool checkClick(Vector2 mousePos){
             if(CheckCollisionPointRec(mousePos, this->backdrop) && IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
                 if(this->enabled && !this->active){
+                    if (onClick) onClick(this->label);
                     return true;
                 }
             }
             return false;
+        }
+        virtual void setX(int x) override {
+            this->x = x; 
+            Rectangle newBack = Rectangle{this->x,this->y,this->w + 2 * this->padding,this->h + 2 * this->padding};
+            this->backdrop = newBack;
+        }
+        virtual void setY(int y) override {
+            this->y = y; 
+            Rectangle newBack = Rectangle{this->x,this->y,this->w + 2 * this->padding,this->h + 2 * this->padding};
+            this->backdrop = newBack;
         }
         
     protected:
@@ -112,13 +146,12 @@ class Button: public Drawable {
             }else{
                 btnColor = this->baseColor;
             }
-            DrawRectangle(this->x,this->y,this->w + 2 * padding,this->h + 2 * padding,btnColor);
+            DrawRectangleRec(this->backdrop,btnColor);
             DrawText(this->label.c_str(), this->x + this->padding, this->y + this->padding, this->fontSize, this->textColor);
         }
 
     private:
         int padding;
-        int x,y,h,w;
         int fontSize;
         Rectangle backdrop;
         std::string label;
@@ -152,16 +185,33 @@ int getSliderPercent(int pos){
 }
 
 int main(void){
-    InitWindow(500, 500, "RLCL");
+    InitWindow(400, 500, "RLCL");
     SetTargetFPS(30);
     //Button testbtn1 = Button("Prueba1CAPO",10,10,30,GRAY,BLACK,5,5);
-    PresetBox presBox1 = PresetBox(35,40,30,30,0,0,30,RED,5);
-    presBox1.addChild(std::make_unique<Button>("Prueba1CAPO",10,10,30,GRAY,BLACK,5,5));
+    PresetBox presBox1 = PresetBox(35,40,30,30,0,0,30,RED,10);
+    presBox1.addChild(std::make_unique<Button>("Load",105,5,30,GRAY,BLACK,5,5,handleClick),0);
+    presBox1.addChild(std::make_unique<Button>("Delete",195,5,30,GRAY,BLACK,5,5,handleClick),0);
+    PresetBox presBox2 = PresetBox(35,80,30,90,0,0,30,RED,10);
+    presBox2.addChild(std::make_unique<Button>("Load",105,5,30,GRAY,BLACK,5,5,handleClick),0);
+    presBox2.addChild(std::make_unique<Button>("Delete",195,5,30,GRAY,BLACK,5,5,handleClick),0);
+    PresetBox presBox3 = PresetBox(25,70,30,150,0,0,30,RED,10);
+    presBox3.addChild(std::make_unique<Button>("Load",105,5,30,GRAY,BLACK,5,5,handleClick),0);
+    presBox3.addChild(std::make_unique<Button>("Delete",195,5,30,GRAY,BLACK,5,5,handleClick),0);
+    PresetBox presBox4 = PresetBox(30,90,30,210,0,0,30,RED,10);
+    presBox4.addChild(std::make_unique<Button>("Load",105,5,30,GRAY,BLACK,5,5,handleClick),0);
+    presBox4.addChild(std::make_unique<Button>("Delete",195,5,30,GRAY,BLACK,5,5,handleClick),0);
     while (!WindowShouldClose()) {
         presBox1.tick(GetMousePosition());
+        presBox2.tick(GetMousePosition());
+        presBox3.tick(GetMousePosition());
+        presBox4.tick(GetMousePosition());
         BeginDrawing();
         ClearBackground(LIGHTGRAY);
         presBox1.draw();
+        presBox2.draw();
+        presBox3.draw();
+        presBox4.draw();
+        DrawText(testBanner.c_str(),0,250,40,RED);
         EndDrawing();
     }
     CloseWindow();
